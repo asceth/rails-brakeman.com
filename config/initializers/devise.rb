@@ -206,7 +206,20 @@ Devise.setup do |config|
   # config.omniauth :github, 'APP_ID', 'APP_SECRET', :scope => 'user,public_repo'
   GITHUB_CONFIG = YAML.load_file(Rails.root.join('config', 'github.yml'))[Rails.env]
   OmniAuth.config.logger = Rails.logger
-  config.omniauth :github, GITHUB_CONFIG['key'], GITHUB_CONFIG['secret'], scope: 'public,public_repo'
+
+  options = {
+    scope: 'public,public_repo'
+  }
+
+  if GITHUB_CONFIG['domain']
+    options.merge(client_options: {
+                    site: "https://#{GITHUB_CONFIG['domain']}/api/v3",
+                    authorize_url: "https://#{GITHUB_CONFIG['domain']}/login/oauth/authorize",
+                    token_url: "https://#{GITHUB_CONFIG['domain']}/login/oauth/access_token"
+                  })
+  end
+
+  config.omniauth :github, GITHUB_CONFIG['key'], GITHUB_CONFIG['secret'], options
 
   # ==> Warden configuration
   # If you want to use other strategies, that are not supported by Devise, or
